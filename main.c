@@ -1,16 +1,9 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-// ---------------------------
-// Constantes
-// ---------------------------
 #define MAX_SALLES 100
 #define MAX_RESERVATIONS 1000
 
-// ---------------------------
-// Structures (Task 1)
-// ---------------------------
 typedef struct {
     char nom[50];
     int capacite;
@@ -21,39 +14,24 @@ typedef struct {
 typedef struct {
     int id;
     char nom_client[50];
-    int index_salle;     // index dans salles[]
-    char date[11];       // "YYYY-MM-DD"
-    int heure_debut;     // ex: 9
-    int heure_fin;       // ex: 11
+    int index_salle;
+    char date[11];       // "DD-MM-YYYY"
+    int heure_debut;
+    int heure_fin;
     int nb_personnes;
     float tarif;
     int statut;          // 0=en attente, 1=confirmee, 2=annulee
 } Reservation;
 
-// ---------------------------
-// Données globales
-// ---------------------------
 Salle salles[MAX_SALLES];
 int nbSalles = 0;
 
 Reservation reservations[MAX_RESERVATIONS];
 int nbReservations = 0;
 
-// ---------------------------
-// Task 6 : Persistence
-// ---------------------------
-// Format texte :
-// salles.txt : nom;capacite;tarif_horaire;equipements\n
-// reservations.txt : id;nom_client;index_salle;date;heure_debut;heure_fin;nb_personnes;tarif;statut\n
-
 void sauvegarderSalles() {
     FILE *f = fopen("salles.txt", "w");
     int i;
-
-    if (!f) {
-        perror("Erreur ouverture salles.txt en ecriture");
-        return;
-    }
 
     for (i = 0; i < nbSalles; i++) {
         fprintf(f, "%s;%d;%.2f;%s\n",
@@ -68,17 +46,7 @@ void sauvegarderSalles() {
 void chargerSalles() {
     FILE *f = fopen("salles.txt", "r");
 
-    if (!f) {             // fichier inexistant ou non lisible
-        nbSalles = 0;
-        return;
-    }
-
     nbSalles = 0;
-    // On lit : nom;capacite;tarif_horaire;equipements
-    // nom[50]       -> %49[^;]
-    // capacite      -> %d
-    // tarif_horaire -> %f
-    // equipements[200] -> %199[^\n]
     while (nbSalles < MAX_SALLES &&
            fscanf(f, " %49[^;];%d;%f;%199[^\n]",
                   salles[nbSalles].nom,
@@ -93,11 +61,6 @@ void chargerSalles() {
 void sauvegarderReservations() {
     FILE *f = fopen("reservations.txt", "w");
     int i;
-
-    if (!f) {
-        perror("Erreur ouverture reservations.txt en ecriture");
-        return;
-    }
 
     for (i = 0; i < nbReservations; i++) {
         fprintf(f, "%d;%s;%d;%s;%d;%d;%d;%.2f;%d\n",
@@ -116,15 +79,8 @@ void sauvegarderReservations() {
 
 void chargerReservations() {
     FILE *f = fopen("reservations.txt", "r");
-    if (!f) {
-        nbReservations = 0;
-        return;
-    }
 
     nbReservations = 0;
-    // id;nom_client;index_salle;date;heure_debut;heure_fin;nb_personnes;tarif;statut
-    // nom_client[50] -> %49[^;]
-    // date[11] -> %10[^;]
     while (nbReservations < MAX_RESERVATIONS &&
            fscanf(f, "%d;%49[^;];%d;%10[^;];%d;%d;%d;%f;%d",
                   &reservations[nbReservations].id,
@@ -151,10 +107,6 @@ void sauvegarderDansFichiers() {
     sauvegarderReservations();
 }
 
-// ---------------------------
-// Outils Task 2
-// ---------------------------
-// Chevauchement d'intervalles horaires.
 int intervallesSeChevauchent(int start1, int end1, int start2, int end2) {
     return (start1 < end2) && (start2 < end1);
 }
@@ -176,9 +128,6 @@ int reservationEnConflit(int index_salle, const char *date,
     return 0;
 }
 
-// ---------------------------
-// Fonctions de gestion des salles (simples)
-// ---------------------------
 void ajouterSalle() {
     Salle s;
 
@@ -213,9 +162,6 @@ void afficherSalles() {
     }
 }
 
-// ---------------------------
-// Task 2 : Ajouter une reservation
-// ---------------------------
 void ajouterReservation() {
     if (nbReservations >= MAX_RESERVATIONS) {
         printf("Nombre maximal de reservations atteint.\n");
@@ -244,7 +190,7 @@ void ajouterReservation() {
         return;
     }
 
-    printf("Date (YYYY-MM-DD) : ");
+    printf("Date (JJ-MM-AAAA) : ");
     scanf(" %10s", r.date);
 
     printf("Heure de debut : ");
@@ -275,19 +221,16 @@ void ajouterReservation() {
 
     duree = r.heure_fin - r.heure_debut;
     r.tarif = salles[r.index_salle].tarif_horaire * duree;
-    r.statut = 1; // confirmée
+    r.statut = 1;
 
     reservations[nbReservations++] = r;
     printf("Reservation creee. Tarif = %.2f\n", r.tarif);
 
-    sauvegarderDansFichiers(); // persistence automatique
+    sauvegarderDansFichiers();
 }
 
-// ---------------------------
-// Task 5 : Statistiques
-// ---------------------------
 int extraireMois(const char *date) {
-    int mois = (date[5] - '0') * 10 + (date[6] - '0');
+    int mois = (date[3] - '0') * 10 + (date[4] - '0');
     return mois;
 }
 
@@ -356,9 +299,6 @@ void afficherSallesLesPlusPopulaires() {
     }
 }
 
-// ---------------------------
-// Affichage simple des reservations
-// ---------------------------
 void afficherReservations() {
     int i;
     printf("=== Liste des reservations ===\n");
@@ -376,9 +316,6 @@ void afficherReservations() {
     }
 }
 
-// ---------------------------
-// Menu principal
-// ---------------------------
 void afficherMenu() {
     printf("\n=== MENU ===\n");
     printf("1. Ajouter une salle\n");
@@ -394,7 +331,7 @@ void afficherMenu() {
 
 int main() {
     int choix;
-    chargerDepuisFichiers(); // charge les donnees au demarrage
+    chargerDepuisFichiers();
 
     do {
         afficherMenu();

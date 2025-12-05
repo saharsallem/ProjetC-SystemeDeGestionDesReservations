@@ -7,3 +7,4 @@ Sbeitla;60;85.00;Projecteur,Sonorisation
 Kerkennah;30;60.00;TV,WiFi,Climatisation
 Hammamet;80;95.00;Projecteur,WiFi,Climatisation
 Kairouan;70;100.00;Projecteur,Sonorisation,WiFi
+AinDrahem;20;60.00;TV,WiFi
