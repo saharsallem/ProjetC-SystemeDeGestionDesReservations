@@ -10,7 +10,7 @@ typedef struct {
     float tarif_horaire;
     char equipements[200];
 } Salle;
-//hola
+
 typedef struct {
     int id;
     char nom_client[50];
