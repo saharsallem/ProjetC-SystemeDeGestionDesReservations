@@ -155,11 +155,19 @@ void ajouterSalle() {
 void afficherSalles() {
     int i;
     printf("=== Liste des salles ===\n");
-    for (i = 0; i < nbSalles; i++) {
-        printf("%d) %s, capacite=%d, tarif=%.2f, equipements=%s\n",
+    if (!f)
+    {
+        printf("aucune salle à afficher");
+    }        
+    else
+    {
+        for (i = 0; i < nbSalles; i++) {
+                printf("%d) %s, capacite=%d, tarif=%.2f, equipements=%s\n",
                i+1, salles[i].nom, salles[i].capacite,
                salles[i].tarif_horaire, salles[i].equipements);
+        }
     }
+    
 }
 
 void ajouterReservation() {
