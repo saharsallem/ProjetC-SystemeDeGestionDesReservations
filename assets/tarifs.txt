@@ -1,0 +1,11 @@
+Dougga;80.00
+Utique;75.00
+Carthage;130.00
+BullaRegia;65.00
+ElJem;120.00
+Sbeitla;85.00
+Kerkennah;60.00
+Hammamet;95.00
+Kairouan;100.00
+AinDrahem;60.00
+

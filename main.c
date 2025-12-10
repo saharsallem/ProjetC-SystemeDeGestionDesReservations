@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+
 
 #define MAX_SALLES 100
 #define MAX_RESERVATIONS 1000
@@ -30,10 +29,6 @@ int nbSalles = 0;
 
 Reservation reservations[MAX_RESERVATIONS];
 int nbReservations = 0;
-
-void creerDossierSiInexistant(const char *dossier) {
-    mkdir(dossier, 0755);
-}
 
 int lireEntier() {
     int valeur;
@@ -171,8 +166,6 @@ void chargerReservations() {
 }
 
 void chargerDepuisFichiers() {
-    creerDossierSiInexistant("assets");
-    creerDossierSiInexistant("factures");
     chargerSalles();
     chargerReservations();
     chargerTarifs();
@@ -181,6 +174,7 @@ void chargerDepuisFichiers() {
 void sauvegarderDansFichiers() {
     sauvegarderSalles();
     sauvegarderReservations();
+    sauvegarderTarifs();
 }
 
 int intervallesSeChevauchent(int start1, int end1, int start2, int end2) {
