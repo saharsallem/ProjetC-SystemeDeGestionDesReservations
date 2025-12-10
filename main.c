@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define MAX_SALLES 100
 #define MAX_RESERVATIONS 1000
@@ -28,6 +30,10 @@ int nbSalles = 0;
 
 Reservation reservations[MAX_RESERVATIONS];
 int nbReservations = 0;
+
+void creerDossierSiInexistant(const char *dossier) {
+    mkdir(dossier, 0755);
+}
 
 int lireEntier() {
     int valeur;
@@ -58,10 +64,10 @@ float lireReel() {
 }
 
 void sauvegarderSalles() {
-    FILE *f = fopen("salles.txt", "w");
+    FILE *f = fopen("assets/salles.txt", "w");
     int i;
     if (!f) {
-        printf("Erreur : impossible d'ouvrir salles.txt en ecriture.\n");
+        printf("Erreur : impossible d'ouvrir assets/salles.txt en ecriture.\n");
         return;
     }
     for (i = 0; i < nbSalles; i++) {
@@ -75,7 +81,7 @@ void sauvegarderSalles() {
 }
 
 void chargerSalles() {
-    FILE *f = fopen("salles.txt", "r");
+    FILE *f = fopen("assets/salles.txt", "r");
     if (!f) {
         nbSalles = 0;
         return;
@@ -93,7 +99,7 @@ void chargerSalles() {
 }
 
 void sauvegarderTarifs() {
-    FILE *f = fopen("tarifs.txt", "w");
+    FILE *f = fopen("assets/tarifs.txt", "w");
     if (!f) {
         printf("Erreur ouverture fichier tarifs.\n");
         return;
@@ -105,7 +111,7 @@ void sauvegarderTarifs() {
 }
 
 void chargerTarifs() {
-    FILE *f = fopen("tarifs.txt", "r");
+    FILE *f = fopen("assets/tarifs.txt", "r");
     if (!f) return;
     char nom[50];
     float tarif;
@@ -120,10 +126,10 @@ void chargerTarifs() {
 }
 
 void sauvegarderReservations() {
-    FILE *f = fopen("reservations.txt", "w");
+    FILE *f = fopen("assets/reservations.txt", "w");
     int i;
     if (!f) {
-        printf("Erreur : impossible d'ouvrir reservations.txt en ecriture.\n");
+        printf("Erreur : impossible d'ouvrir assets/reservations.txt en ecriture.\n");
         return;
     }
     for (i = 0; i < nbReservations; i++) {
@@ -142,7 +148,7 @@ void sauvegarderReservations() {
 }
 
 void chargerReservations() {
-    FILE *f = fopen("reservations.txt", "r");
+    FILE *f = fopen("assets/reservations.txt", "r");
     if (!f) {
         nbReservations = 0;
         return;
@@ -165,6 +171,8 @@ void chargerReservations() {
 }
 
 void chargerDepuisFichiers() {
+    creerDossierSiInexistant("assets");
+    creerDossierSiInexistant("factures");
     chargerSalles();
     chargerReservations();
     chargerTarifs();
@@ -432,6 +440,7 @@ void modifierReservation() {
     printf("2. Modifier la date\n");
     printf("3. Modifier les heures\n");
     printf("4. Modifier le nombre de personnes\n");
+    printf("5. Modifier la salle\n");
     printf("0. Annuler\n");
     printf("Choix : ");
     int choix = lireEntier();
@@ -487,6 +496,33 @@ void modifierReservation() {
         printf("Nombre de personnes modifie.\n");
         break;
     }
+    case 5: {
+        afficherSalles();
+        printf("Nouvelle salle (1 a %d) : ", nbSalles);
+        int nouvelle_salle = lireEntier();
+        nouvelle_salle--;
+        if (nouvelle_salle < 0 || nouvelle_salle >= nbSalles) {
+            printf("Indice de salle invalide.\n");
+            return;
+        }
+        if (reservationEnConflit(nouvelle_salle,
+                                 reservations[index].date,
+                                 reservations[index].heure_debut,
+                                 reservations[index].heure_fin)) {
+            printf("Erreur : une reservation existe deja pour cette salle a cette date et heure.\n");
+            return;
+        }
+        if (reservations[index].nb_personnes > salles[nouvelle_salle].capacite) {
+            printf("Erreur : nombre de personnes > capacite (%d).\n",
+                   salles[nouvelle_salle].capacite);
+            return;
+        }
+        reservations[index].index_salle = nouvelle_salle;
+        int duree = reservations[index].heure_fin - reservations[index].heure_debut;
+        reservations[index].tarif = salles[nouvelle_salle].tarif_horaire * duree;
+        printf("Salle modifiee et tarif recalcule.\n");
+        break;
+    }
     case 0:
         printf("Modification annulee.\n");
         return;
@@ -536,8 +572,8 @@ void genererFacture(int idReservation) {
         printf("Reservation introuvable.\n");
         return;
     }
-    char nomFichier[100];
-    sprintf(nomFichier, "facture_%d.txt", r->id);
+    char nomFichier[150];
+    sprintf(nomFichier, "factures/facture_%d.txt", r->id);
     FILE *f = fopen(nomFichier, "w");
     if (!f) {
         printf("Erreur creation facture.\n");
@@ -648,17 +684,17 @@ void afficherSallesLesPlusPopulaires() {
 
 void afficherMenu() {
     printf("\n========== MENU PRINCIPAL ==========\n");
-    printf("\n--- GESTION DES SALLES ---\n");
-    printf("1. Ajouter une salle\n");
-    printf("2. Afficher les salles\n");
-    printf("3. Modifier une salle\n");
-    printf("4. Supprimer une salle\n");
     printf("\n--- RESERVATIONS ET FACTURES ---\n");
-    printf("5. Ajouter une reservation\n");
-    printf("6. Afficher les reservations\n");
-    printf("7. Modifier une reservation\n");
-    printf("8. Supprimer une reservation\n");
-    printf("9. Generer une facture\n");
+    printf("1. Ajouter une reservation\n");
+    printf("2. Afficher les reservations\n");
+    printf("3. Modifier une reservation\n");
+    printf("4. Supprimer une reservation\n");
+    printf("5. Generer une facture\n");
+    printf("\n--- GESTION DES SALLES ---\n");
+    printf("6. Ajouter une salle\n");
+    printf("7. Afficher les salles\n");
+    printf("8. Modifier une salle\n");
+    printf("9. Supprimer une salle\n");
     printf("\n--- STATISTIQUES ---\n");
     printf("10. Chiffre d'affaires par salle\n");
     printf("11. Reservations par mois\n");
@@ -679,34 +715,34 @@ int main() {
 
         switch (choix) {
         case 1:
-            ajouterSalle();
-            break;
-        case 2:
-            afficherSalles();
-            break;
-        case 3:
-            modifierSalle();
-            break;
-        case 4:
-            supprimerSalle();
-            break;
-        case 5:
             ajouterReservation();
             break;
-        case 6:
+        case 2:
             afficherReservations();
             break;
-        case 7:
+        case 3:
             modifierReservation();
             break;
-        case 8:
+        case 4:
             supprimerReservation();
             break;
-        case 9:
+        case 5:
             afficherReservations();
             printf("ID de la reservation pour generer la facture : ");
             int id = lireEntier();
             genererFacture(id);
+            break;
+        case 6:
+            ajouterSalle();
+            break;
+        case 7:
+            afficherSalles();
+            break;
+        case 8:
+            modifierSalle();
+            break;
+        case 9:
+            supprimerSalle();
             break;
         case 10:
             afficherChiffreAffairesParSalle();
@@ -727,3 +763,4 @@ int main() {
 
     return 0;
 }
+

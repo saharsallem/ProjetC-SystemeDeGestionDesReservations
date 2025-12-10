@@ -1,0 +1,7 @@
+====== FACTURE ======
+Client : Foued
+Salle  : Utique
+Date   : 10-07-2025
+Heure  : 15h - 18h
+Duree  : 3 heures
+Montant : 225.00 DT
